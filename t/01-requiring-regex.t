@@ -2,13 +2,25 @@
 use strict;
 use warnings;
 
-use Test::More tests => 9;
+use Test::More tests => 16;
 
 package TestApp::Requiring::Regex;
 use Class::AutoGenerate -base;
 
-requiring qr/^TestApp::(\w+)$/ => generates {};
-requiring qr/^\w\d+::Auto$/    => generates {};
+our @expected_1 = qw( Delta Columbia Vostok R E);
+our @expected_2 = qw( 1234 8 );
+
+my $count_1 = 0;
+my $count_2 = 0;
+
+requiring qr/^TestApp::(\w+)$/ => generates {
+    Test::More::is($1, $expected_1[$count_1++], "require $count_1");
+};
+
+requiring qr/^(\w)(\d+)::Auto$/    => generates {
+    Test::More::is($1, $expected_1[$count_1++], "require $count_1");
+    Test::More::is($2, $expected_2[$count_2++], "require $count_2");
+};
 
 package main;
 BEGIN { TestApp::Requiring::Regex->new }

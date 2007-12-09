@@ -2,12 +2,14 @@
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 
 package TestApp::Requiring::Exact;
 use Class::AutoGenerate -base;
 
-requiring 'TestApp::Auto' => generates {};
+requiring 'TestApp::Auto' => generates {
+    Test::More::is($1, 'TestApp::Auto');
+};
 
 package main;
 BEGIN { TestApp::Requiring::Exact->new }

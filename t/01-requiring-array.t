@@ -2,15 +2,17 @@
 use strict;
 use warnings;
 
-use Test::More tests => 9;
+use Test::More tests => 17;
 
 package TestApp::Requiring::Regex;
 use Class::AutoGenerate -base;
 
-requiring [ 'Planets::Mercury', 'Planets::Venus', 'Planets::Earth',
-            'Planets::Mars', 'Planets::Jupiter', 'Planets::Saturn',
-            'Planets::Uranus', 'Planets::Neptune' ]
-    => generates {};
+my @planets = qw( Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune );
+
+my $count = 0;
+requiring [ map { 'Planets::'.$_ } @planets ] => generates {
+    Test::More::is($1, 'Planets::'.$planets[$count++]);
+};
 
 package main;
 BEGIN { TestApp::Requiring::Regex->new }

@@ -2,13 +2,24 @@
 use strict;
 use warnings;
 
-use Test::More tests => 10;
+use Test::More tests => 18;
 
 package TestApp::Requiring::DoubleAsterisk;
 use Class::AutoGenerate -base;
 
-requiring 'TestApp::**' => generates {};
-requiring '**::Auto'    => generates {};
+our @expected_1 = qw(
+    Delta Columbia Vostok Snoopy::Columbia
+    Redstone EdWhite Delta7::TestApp Auto
+);
+
+my $count = 0;
+requiring 'TestApp::**' => generates {
+    Test::More::is($1, $expected_1[$count++], "require $count");
+};
+
+requiring '**::Auto'    => generates {
+    Test::More::is($1, $expected_1[$count++], "require $count");
+};
 
 package main;
 BEGIN { TestApp::Requiring::DoubleAsterisk->new }

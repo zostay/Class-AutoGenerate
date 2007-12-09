@@ -78,6 +78,7 @@ sub import {
         Class::AutoGenerate::Declare->export_to_level(1, undef);
         
         no strict 'refs';
+        no warnings 'once';
         push @{ $package . '::ISA' }, $class;
         @{ $package . '::RULES' } = ();
     }

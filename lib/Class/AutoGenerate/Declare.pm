@@ -249,10 +249,13 @@ This is similar to L</uses>, but uses L<perlfunc/require> instead of C<use>.
 =cut
 
 sub requires($) {
-    my $class = shift;
-    my $expr  = quotemeta shift;
+    my $expr  = shift;
 
-    eval "package $Class::AutoGenerate::package; require '$expr';";
+    # Make a nice string unless it's barewordable... this might not always do
+    # the right thing...
+    $expr = '"' . quotemeta($expr) . '"' unless $expr =~ /^[\w:]+$/;
+
+    eval "package $Class::AutoGenerate::package; require $expr;";
     die $@ if $@;
 }
 
@@ -269,25 +272,27 @@ sub defines($$) {
     my $value = shift;
 
     # It's a scalar
-    if ($name =~ /^\$/) {
+    if ($name =~ s/^\$//) {
         no strict 'refs';
         ${ $Class::AutoGenerate::package . '::' . $name } = $value;
     }
 
     # It's an array
-    elsif ($name =~ /^\@/) {
+    elsif ($name =~ s/^\@//) {
         no strict 'refs';
         @{ $Class::AutoGenerate::package . '::' . $name } = @$value;
     }
 
     # It's a hash
-    elsif ($name =~ /^\%/) {
+    elsif ($name =~ s/^\%//) {
         no strict 'refs';
         %{ $Class::AutoGenerate::package . '::' . $name } = %$value;
     }
 
     # It's a method
     else {
+        $name =~ s/^\&//;
+
         no strict 'refs';
         *{ $Class::AutoGenerate::package . '::' . $name } = $value;
     }
@@ -339,8 +344,11 @@ Given a file name, this evalutes the Perl in that file within the context of the
 sub source_file($) {
     my $filename = shift;
 
+    # Open the file...
     open my $fh, '<', $filename or die "failed to open $filename: $!";
-    local $\;
+
+    # Slurp it down...
+    local $/;
     return <$fh>;
 }
 

@@ -14,6 +14,7 @@ our @EXPORT = qw(
     generate_from source_code source_file
 );
 
+use Carp;
 use Scalar::Util qw/ reftype /;
 
 =head1 NAME
@@ -358,7 +359,7 @@ Andrew Sterling Hanenkamp C<< <hanenkamp@cpan.org> >>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007 Boomer Consulting, Inc. All Rights Reserved.
+Copyright 2007 Boomer Consulting, Inc.
 
 This program is free software and may be modified and distributed under the same terms as Perl itself.
 

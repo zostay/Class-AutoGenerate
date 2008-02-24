@@ -22,7 +22,7 @@ requiring '*::Auto'    => generates {
 };
 
 package main;
-BEGIN { TestApp::Requiring::SingleAsterisk->new }
+TestApp::Requiring::SingleAsterisk->new;
 
 require 't/util.pl';
 

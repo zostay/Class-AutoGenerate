@@ -17,7 +17,7 @@ requiring 'TestApp::AnotherThing' => generates {
 };
 
 package main;
-BEGIN { TestApp::Uses->new }
+TestApp::Uses->new;
 
 require_ok('TestApp::Thing');
 require_ok('TestApp::AnotherThing');

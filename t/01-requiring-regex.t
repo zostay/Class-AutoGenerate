@@ -23,7 +23,7 @@ requiring qr/^(\w)(\d+)::Auto$/    => generates {
 };
 
 package main;
-BEGIN { TestApp::Requiring::Regex->new }
+TestApp::Requiring::Regex->new;
 
 require 't/util.pl';
 

@@ -19,7 +19,7 @@ requiring '?::Auto'    => generates {
 };
 
 package main;
-BEGIN { TestApp::Requiring::SingleQuestion->new }
+TestApp::Requiring::SingleQuestion->new;
 
 require 't/util.pl';
 

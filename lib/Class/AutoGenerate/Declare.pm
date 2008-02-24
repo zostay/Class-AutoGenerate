@@ -5,16 +5,16 @@ package Class::AutoGenerate::Declare;
 
 require Exporter;
 
-our $VERSION = 0.01;
+our $VERSION = 0.04;
 
 our @ISA = qw( Exporter );
 our @EXPORT = qw(
-    requiring generates
+    declare requiring generates
     extends uses requires defines
     generate_from source_code source_file
+    next_rule last_rule
 );
 
-use Carp;
 use Scalar::Util qw/ reftype /;
 
 =head1 NAME
@@ -162,6 +162,9 @@ sub _compile_glob_pattern($) {
     return qr{^$glob$};
 }
 
+# This variable used to communicate when declare { requiring ... }
+our $declare_to = undef;
+
 sub _register_rules($$$) {
     my $class   = shift;
     my $pattern = shift;
@@ -175,7 +178,7 @@ sub _register_rules($$$) {
     # Otherwise, compile globs and push in the pattern => code rule thingies
     else {
         $pattern = _compile_glob_pattern $pattern;
-        push @{ $class->_rules }, [ $pattern => $code ];
+        push @{ $declare_to || $class->_declarations }, [ $pattern => $code ];
     }
 }
 
@@ -216,6 +219,52 @@ A class would be generated named C<My::Flipper> that uses C<My::Base::Flipper> a
 =cut
 
 sub generates(&) { shift }
+
+=head2 declare { ... };
+
+A declare block may be used to wrap your class loader code, but is not required. The block will be passed a single argument, C<$self>, which is the initialized class loader object. It is helpful if you need a reference to your C<$self>.
+
+For example,
+
+  package My::Classloader;
+  use Class::Autogenerate -base;
+
+  declare {
+      my $self = shift;
+      my $base = $self->{base};
+
+      requiring "$base::**' => generates {};
+  };
+
+  1;
+
+  # later...
+  use My::Classloader;
+  BEGIN { My::Classloader->new( base => 'Foo' ) };
+
+You may have multiple C<declare> blocks in your class loader.
+
+It is important to note that the C<declare> block modifies the semantics of how the class loader is built. Normally, the C<requiring> rules are all generated and associated with the class loader package immediately. A C<declare> block causes all rules inside the block to be held until the class loader is constructed. During construction, the requiring rules in C<declare> blocks are built and associated with the constructed class loader instance directly.
+
+=cut
+
+sub declare(&) {
+    my $code    = shift;
+
+    # Wrap that code in a little more code that sets things up
+    my $declaration = sub {
+        my $self = shift;
+
+        # $declare_to signals to requiring to register rules differently
+        local $declare_to = [];
+        $code->($self);
+        return @$declare_to;
+    };
+
+    # Register the declaration
+    my $package = caller;
+    push @{ $package->_declarations }, $declaration;
+}
 
 =head2 extends CLASSES
 
@@ -352,6 +401,22 @@ sub source_file($) {
     local $/;
     return <$fh>;
 }
+
+=head2 next_rule
+
+By calling the C<next_rule> statement, you will prevent the current L</generates> statement from finishing. Instead, it will quit and the next L</requirng> rule will be tried.
+
+=cut
+
+sub next_rule() { die "NEXT_RULE\n" }
+
+=head2 last_rule
+
+The C<last_rule> statement causes the class loader to stop completely and return that it found no matching Perl modules.
+
+=cut
+
+sub last_rule() { die "LAST_RULE\n" }
 
 =head1 AUTHOR
 

@@ -1,3 +1,9 @@
+0.03 - 2008-02-23 Andrew Sterling Hanenkamp
+
+ * Added the declare { ... } statement for mapping rules into class loader
+   instances.
+ * Added and updated tests and internals to support this change in the API.
+
 0.02 - 2008-02-23 Andrew Sterling Hanenkamp
 
  * Added the "match_only" option to the constructor.

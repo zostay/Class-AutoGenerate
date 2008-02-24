@@ -12,7 +12,7 @@ requiring 'TestApp::Auto' => generates {
 };
 
 package main;
-BEGIN { TestApp::GenerateFrom::File->new }
+TestApp::GenerateFrom::File->new;
 
 require_ok('TestApp::Auto');
 TestApp::Auto->pass1;

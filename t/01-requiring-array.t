@@ -4,7 +4,7 @@ use warnings;
 
 use Test::More tests => 17;
 
-package TestApp::Requiring::Regex;
+package TestApp::Requiring::Array;
 use Class::AutoGenerate -base;
 
 my @planets = qw( Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune );
@@ -15,7 +15,7 @@ requiring [ map { 'Planets::'.$_ } @planets ] => generates {
 };
 
 package main;
-BEGIN { TestApp::Requiring::Regex->new }
+TestApp::Requiring::Array->new;
 
 require 't/util.pl';
 

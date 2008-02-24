@@ -12,7 +12,7 @@ requiring 'TestApp::Auto' => generates {
 };
 
 package main;
-BEGIN { TestApp::Requiring::Exact->new }
+TestApp::Requiring::Exact->new;
 
 require 't/util.pl';
 

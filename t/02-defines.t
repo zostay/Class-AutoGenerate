@@ -17,7 +17,7 @@ requiring 'TestApp::Auto' => generates {
 };
 
 package main;
-BEGIN { TestApp::Defines->new };
+TestApp::Defines->new;
 
 no warnings 'once';
 

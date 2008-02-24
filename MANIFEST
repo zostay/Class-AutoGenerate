@@ -24,6 +24,7 @@ t/02-defines.t
 t/02-extends.t
 t/02-generate_from-file.t
 t/02-generate_from-source.t
+t/02-next_last_rule.t
 t/02-requires.t
 t/02-uses.t
 t/03-match-only.t

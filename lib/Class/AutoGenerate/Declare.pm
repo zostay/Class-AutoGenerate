@@ -270,6 +270,11 @@ sub declare(&) {
 
 This subroutine is used with L</generates> to mark the generated class as extending the named class or classes. This pushes the named classes into the C<@ISA> array for the class when it is generated.
 
+B<N.B.> You need to ask Perl to include this class on your own. This is not exactly equivalent to <use base qw/$class/> in this regard. If a class might not be included already, you may wish to do something like the following:
+
+  require My::Parent::Class;
+  extends 'My::Parent::Class';
+
 =cut
 
 sub extends(@) {

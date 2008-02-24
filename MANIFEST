@@ -20,6 +20,7 @@ t/01-requiring-exact.t
 t/01-requiring-question.t
 t/01-requiring-regex.t
 t/01-requiring-single-asterisk.t
+t/02-conclude_with.t
 t/02-defines.t
 t/02-extends.t
 t/02-generate_from-file.t

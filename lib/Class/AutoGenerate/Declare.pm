@@ -11,7 +11,7 @@ our @ISA = qw( Exporter );
 our @EXPORT = qw(
     declare requiring generates
     extends uses requires defines
-    generate_from source_code source_file
+    generate_from conclude_with source_code source_file
     next_rule last_rule
 );
 
@@ -256,7 +256,7 @@ sub declare(&) {
         my $self = shift;
 
         # $declare_to signals to requiring to register rules differently
-        local $declare_to = [];
+        local $declare_to   = [];
         $code->($self);
         return @$declare_to;
     };
@@ -373,9 +373,68 @@ sub generate_from($) {
     die $@ if $@;
 }
 
+=head2 conclude_with SOURCE
+
+This is a special helper used in place of L</generate_from> for code that could cause a loop during code generation. This can occur because Perl does not realize that the generated module has been loaded until I<after> the L</generates> block has been completely executed. Therefore, the use of C<require> and C<use> might cause a loop under certain conditions.
+
+Rather than try to explain who to contrive such a situation, here's a contrived example where C<conclude_with> is helpful:
+
+  package My::Util;
+  use UNIVERSAL::require; # helper that makes "Any::Class"->require; work
+
+  sub require_helpers {
+      my $class = shift;
+      my $module = shift;
+
+      for my $name ( qw( Bob Larry ) ) {
+          my $helper = "My::Thing::${module}::Helper::$name";
+          $helper->require;
+      }
+  }
+
+  package My::ClassLoader;
+  use Class::AutoGenerate -base;
+
+  use UNIVERSAL::require;
+
+  requiring 'My::Thing::*' => generates {
+      my $module = $1;
+
+      defines 'do_something' => sub { ... };
+
+      conclude_with source_code "My::Util->require_helpers('$module');";
+  };
+
+  requiring 'My::Thing::*::Helper::*' => generates {
+      my $module = $1;
+      my $name   = $2;
+
+      # We only make helpers for something that exists!
+      my $thing = "My::Thing::$module";
+      $thing->require or next_rule;
+
+      defines 'help_with_something' => sub { ... };
+  };
+
+If we had used C<generate_from> rather than C<conclude_with> in the code above, a loop would have been generated upon calling C<require My::Thing::Flup>. This would have resulted in a call to C<require_helpers> in the sample, which would have resulted in a called to C<require My::Thing::Flup::Helper::Bob>, which would have resulted in another call to C<require My::Thing::Flup> to see if such a module exists. Unfortunately, since Perl hasn't yet recorded that "My::Thing::Flup" has already been loaded, this will fail.
+
+By using C<conclude_with>, the code given is not executed until Perl has already noted that the class is loaded, so the loop stops and this code should execute successfully.
+
+B<Caution:> If user input has any effect on the code generated, you should make certain that all input is carefully validated to prevent code injection.
+
+=cut
+
+sub conclude_with($) {
+    my $code = shift;
+
+    push @{ $Class::AutoGenerate::conclude_with }, $code;
+}
+
 =head2 source_code SOURCE
 
 This method is purely for use with making your code a little easier to read. It doesn't do anything but return the argument passed to it.
+
+B<Caution:> If user input has any effect on the code generated, you should make certain that all input is carefully validated to prevent code injection.
 
 =cut
 
@@ -388,6 +447,8 @@ Given a file name, this evalutes the Perl in that file within the context of the
   requiring 'Another::Class' => generates {
       generate_from source_file 'code_base.pl';
   };
+
+B<Caution:> If user input has any effect on this file included, you should make certain that all input is carefully validated to prevent code injection.
 
 =cut
 
@@ -417,6 +478,10 @@ The C<last_rule> statement causes the class loader to stop completely and return
 =cut
 
 sub last_rule() { die "LAST_RULE\n" }
+
+=head1 SEE ALSO
+
+L<UNIVERSAL::require>
 
 =head1 AUTHOR
 
